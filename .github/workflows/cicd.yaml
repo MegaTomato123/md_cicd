@@ -1,0 +1,191 @@
+name: Python Greetings CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  install-pip-deps:
+    runs-on: self-hosted
+    timeout-minutes: 5
+    steps:
+      - name: Checkout greetings repository
+        uses: actions/checkout@v3.5.2
+        with:
+          repository: 'mtararujs/python-greetings'
+          path: 'python-greetings'
+          ref: '4e911440a9886c7c26ccbb4eb55f0bc2a5067b51'
+
+      - name: Install dependencies
+        run: pip3 install -r requirements.txt
+        working-directory: ./python-greetings
+
+  deploy-to-dev:
+    runs-on: self-hosted
+    needs: install-pip-deps
+    timeout-minutes: 5
+    steps:
+      - name: Deploying to dev environment
+        run: echo "Deploying to dev environment"
+
+  test-on-dev:
+    runs-on: self-hosted
+    needs: deploy-to-dev
+    timeout-minutes: 5
+    steps:
+      - name: Checkout python-greetings repository
+        uses: actions/checkout@v3.5.2
+        with:
+          repository: 'mtararujs/python-greetings'
+          path: 'python-greetings'
+          ref: '4e911440a9886c7c26ccbb4eb55f0bc2a5067b51'
+  
+      - name: Stop existing service
+        run: echo "Existing service stopped"
+
+      - name: Start new service
+        run: bash -c "pm2 start app.py --name greetings-app-dev -- --port 7001"
+        working-directory: ./python-greetings
+
+      - name: Checkout course-js-api-framework repository
+        uses: actions/checkout@v3.5.2
+        with:
+          repository: 'U1-nix/course-js-api-framework'
+          path: 'course-js-api-framework'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./course-js-api-framework
+
+      - name: Run tests for Development environment
+        run: npm run greetings greetings_dev
+        working-directory: ./course-js-api-framework
+
+  deploy-to-staging:
+    runs-on: self-hosted
+    needs: test-on-dev
+    timeout-minutes: 5
+    steps:
+      - name: Deploying to staging environment
+        run: echo "Deploying to staging environment"
+
+  test-on-staging:
+    runs-on: self-hosted
+    needs: deploy-to-staging
+    timeout-minutes: 5
+    steps:
+      - name: Checkout python-greetings repository
+        uses: actions/checkout@v3.5.2
+        with:
+          repository: 'mtararujs/python-greetings'
+          path: 'python-greetings'
+          ref: '4e911440a9886c7c26ccbb4eb55f0bc2a5067b51'
+  
+      - name: Stop existing service
+        run: echo "Existing service stopped"
+
+      - name: Start new service
+        run: bash -c "pm2 start app.py --name greetings-app-stg -- --port 7002"
+        working-directory: ./python-greetings
+
+      - name: Checkout course-js-api-framework repository
+        uses: actions/checkout@v3.5.2
+        with:
+          repository: 'U1-nix/course-js-api-framework'
+          path: 'course-js-api-framework'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./course-js-api-framework
+
+      - name: Run tests for Staging environment
+        run: npm run greetings greetings_stg
+        working-directory: ./course-js-api-framework
+
+  deploy-to-preprod:
+    runs-on: self-hosted
+    needs: test-on-staging
+    timeout-minutes: 5
+    steps:
+      - name: Deploying to preprod environment
+        run: echo "Deploying to preprod environment"
+
+  test-on-preprod:
+    runs-on: self-hosted
+    needs: deploy-to-preprod
+    timeout-minutes: 5
+    steps:
+      - name: Checkout python-greetings repository
+        uses: actions/checkout@v3.5.2
+        with:
+          repository: 'mtararujs/python-greetings'
+          path: 'python-greetings'
+          ref: '4e911440a9886c7c26ccbb4eb55f0bc2a5067b51'
+  
+      - name: Stop existing service
+        run: echo "Existing service stopped"
+
+      - name: Start new service
+        run: bash -c "pm2 start app.py --name greetings-app-preprod -- --port 7003"
+        working-directory: ./python-greetings
+
+      - name: Checkout course-js-api-framework repository
+        uses: actions/checkout@v3.5.2
+        with:
+          repository: 'U1-nix/course-js-api-framework'
+          path: 'course-js-api-framework'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./course-js-api-framework
+
+      - name: Run tests for Staging environment
+        run: npm run greetings greetings_preprod
+        working-directory: ./course-js-api-framework
+
+  deploy-to-prod:
+    runs-on: self-hosted
+    needs: test-on-preprod
+    timeout-minutes: 5
+    steps:
+      - name: Deploying to prod environment
+        run: echo "Deploying to prod environment"
+
+  test-on-prod:
+    runs-on: self-hosted
+    needs: deploy-to-prod
+    timeout-minutes: 5
+    steps:
+      - name: Checkout python-greetings repository
+        uses: actions/checkout@v3.5.2
+        with:
+          repository: 'mtararujs/python-greetings'
+          path: 'python-greetings'
+          ref: '4e911440a9886c7c26ccbb4eb55f0bc2a5067b51'
+  
+      - name: Stop existing service
+        run: echo "Existing service stopped"
+
+      - name: Start new service
+        run: bash -c "pm2 start app.py --name greetings-app-prod -- --port 7004"
+        working-directory: ./python-greetings
+
+      - name: Checkout course-js-api-framework repository
+        uses: actions/checkout@v3.5.2
+        with:
+          repository: 'U1-nix/course-js-api-framework'
+          path: 'course-js-api-framework'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./course-js-api-framework
+
+      - name: Run tests for Staging environment
+        run: npm run greetings greetings_prod
+        working-directory: ./course-js-api-framework
+            
